@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.Crivos" parent="android:Theme.Material.NoActionBar">
-        <item name="android:statusBarColor">#0A0A0A</item>
-        <item name="android:navigationBarColor">#141414</item>
+        <item name="android:statusBarColor">#000000</item>
+        <item name="android:navigationBarColor">#050507</item>
     </style>
 </resources>

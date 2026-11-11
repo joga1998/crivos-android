@@ -2,20 +2,49 @@ package me.crivos.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Paleta AMOLED e Neutros do CRIVOS
-val AmoledBackground = Color(0xFF0A0A0A)
-val SurfaceDark = Color(0xFF141414)
-val SurfaceCard = Color(0xFF1E1E1E)
-val SurfaceBorder = Color(0xFF2C2C2C)
+// =========================================================================
+// CRIVOS // DESIGN TOKENS OFICIAIS (Sincronizados com tokens.css)
+// =========================================================================
 
-// Cores de Acento
-val EmeraldPrimary = Color(0xFF10B981)
-val EmeraldDark = Color(0xFF059669)
-val GoldAccent = Color(0xFFF59E0B)
-val CrimsonDanger = Color(0xFFEF4444)
-val BlueInfo = Color(0xFF3B82F6)
+// Cores Semânticas Originais CRIVOS (Bauhaus / Tático)
+val CrivosRed = Color(0xFFD92B2B)
+val CrivosRedLight = Color(0xFFEF4444)
+val CrivosBlue = Color(0xFF3B82F6)
+val CrivosBlueLight = Color(0xFF2563EB)
+val CrivosYellow = Color(0xFFF59E0B)
+val CrivosYellowLight = Color(0xFFD97706)
+val CrivosGreen = Color(0xFF22C55E)
+val CrivosGreenLight = Color(0xFF16A34A)
 
-// Tipografia
-val TextPrimary = Color(0xFFF3F4F6)
-val TextSecondary = Color(0xFF9CA3AF)
-val TextMuted = Color(0xFF6B7280)
+// Paleta Modo Escuro AMOLED Puro (#000000)
+val AmoledPaper = Color(0xFF000000)
+val AmoledCard = Color(0xFF050507)
+val AmoledSubtle = Color(0xFF0A0A0D)
+val AmoledElevated = Color(0xFF121216)
+val AmoledInkPrimary = Color(0xFFECECEF)
+val AmoledInkMuted = Color(0xFF8E8E98)
+val AmoledBorder = Color(0xFF17171B)
+val AmoledBorderSubtle = Color(0xFF111114)
+
+// Paleta Modo Claro Papel Tático (#F8F8F7)
+val LightPaper = Color(0xFFF8F8F7)
+val LightCard = Color(0xFFFFFFFF)
+val LightSubtle = Color(0xFFF1F1EF)
+val LightElevated = Color(0xFFE5E5E2)
+val LightInkPrimary = Color(0xFF111111)
+val LightInkMuted = Color(0xFF737373)
+val LightBorder = Color(0xFFD0D0CD)
+val LightBorderSubtle = Color(0xFFE5E5E2)
+
+// Aliases de compatibilidade legada
+val AmoledBackground = AmoledPaper
+val SurfaceDark = AmoledCard
+val SurfaceCard = AmoledSubtle
+val SurfaceBorder = AmoledBorder
+val EmeraldPrimary = CrivosRed
+val GoldAccent = CrivosYellow
+val CrimsonDanger = CrivosRed
+val BlueInfo = CrivosBlue
+val TextPrimary = AmoledInkPrimary
+val TextSecondary = AmoledInkMuted
+val TextMuted = AmoledInkMuted

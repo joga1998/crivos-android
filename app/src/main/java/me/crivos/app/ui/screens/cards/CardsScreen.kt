@@ -1,6 +1,6 @@
 package me.crivos.app.ui.screens.cards
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,195 +10,259 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import me.crivos.app.domain.algorithm.SM2Engine
 import me.crivos.app.domain.algorithm.SM2State
-import me.crivos.app.ui.theme.*
+import me.crivos.app.ui.components.CrivosSegmentedTabs
+import me.crivos.app.ui.components.CrivosTag
+import me.crivos.app.ui.components.CrivosTagStyle
+import me.crivos.app.ui.components.CrivosUnifiedShell
+import me.crivos.app.ui.theme.CrivosRed
+import me.crivos.app.ui.theme.LocalCrivosColors
+
+data class FlashcardDeckItem(
+    val id: String,
+    val disciplina: String,
+    val frente: String,
+    val verso: String
+)
 
 @Composable
 fun CardsScreen() {
-    var cardState by remember { mutableStateOf(SM2State(ef = 2.5, n = 0, iv = 0)) }
+    val c = LocalCrivosColors.current
+    val modes = listOf("FILA SM-2 HOJE", "TODOS OS CARDS", "CRIAR CARD")
+    var selectedMode by remember { mutableStateOf(0) }
+
+    val deck = remember {
+        listOf(
+            FlashcardDeckItem(
+                "1",
+                "DIR. CONSTITUCIONAL",
+                "Qual é o prazo decadencial para impetração de Mandado de Segurança?",
+                "120 dias, contados da ciência, pelo interessado, do ato impugnado (Art. 23 da Lei 12.016/2009). Natureza decadencial (não se suspende nem se interrompe)."
+            ),
+            FlashcardDeckItem(
+                "2",
+                "DIR. ADMINISTRATIVO",
+                "Quais são os 5 elementos/requisitos de validade do Ato Administrativo?",
+                "CO-FI-FO-MO-OB: Competência, Finalidade, Forma, Motivo e Objeto. Os três primeiros são sempre vinculados; Motivo e Objeto formam o mérito nos atos discricionários."
+            ),
+            FlashcardDeckItem(
+                "3",
+                "PORTUGUÊS · FGV",
+                "Quando o uso da crase antes de pronomes possessivos femininos é facultativo?",
+                "Quando o pronome possessivo feminino estiver no singular e exercer função adjetiva (acompanhando um substantivo explícito): 'Refiro-me a/à minha tese'."
+            )
+        )
+    }
+
+    var currentIdx by remember { mutableStateOf(0) }
+    var cardStates by remember {
+        mutableStateOf(deck.associate { it.id to SM2State(ef = 2.5, n = 0, iv = 0) })
+    }
     var isRevealed by remember { mutableStateOf(false) }
-    var lastFeedback by remember { mutableStateOf<String?>(null) }
+
+    val currentCard = deck[currentIdx % deck.size]
+    val currentState = cardStates[currentCard.id] ?: SM2State()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
+            .background(c.bgPaper)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Topo com métricas do card
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+        CrivosUnifiedShell(
+            title = "04 · REPETIÇÃO ESPAÇADA SM-2",
+            headerTrailing = {
+                CrivosTag(text = "FILA: ${deck.size} CARDS", style = CrivosTagStyle.RED_SOLID)
+            }
         ) {
-            Text(
-                text = "REPETIÇÕES: ${cardState.n}",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextSecondary
+            CrivosSegmentedTabs(
+                tabs = modes,
+                selectedIndex = selectedMode,
+                onTabSelected = { selectedMode = it }
             )
-            Text(
-                text = "INTERVALO: ${cardState.iv}d",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = EmeraldPrimary
-            )
-            Text(
-                text = "EASE: ${cardState.ef}",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = GoldAccent
-            )
+
+            // Telemetria do card atual
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "CARD ${currentIdx + 1}/${deck.size}",
+                    fontSize = 10.5.sp,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    color = c.inkMuted
+                )
+                Text(
+                    text = "REP: ${currentState.n} · INT: ${currentState.iv}D · EF: ${currentState.ef}",
+                    fontSize = 10.5.sp,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    color = c.inkPrimary
+                )
+            }
         }
 
-        // Card central interativo (Frente / Verso)
-        Card(
+        // Card de Estudo Interativo (.fc)
+        Surface(
+            color = c.bgCard,
+            shape = RoundedCornerShape(14.dp),
+            border = BorderStroke(1.dp, if (isRevealed) CrivosRed else c.borderSubtle),
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .padding(vertical = 24.dp)
-                .clickable { isRevealed = !isRevealed },
-            colors = CardDefaults.cardColors(containerColor = SurfaceCard),
-            shape = RoundedCornerShape(16.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, SurfaceBorder)
+                .clickable { isRevealed = !isRevealed }
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(24.dp),
+                    .padding(22.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(
-                    text = "Direito Constitucional",
-                    fontSize = 12.sp,
-                    color = EmeraldPrimary,
-                    fontWeight = FontWeight.Bold
-                )
+                CrivosTag(text = currentCard.disciplina, style = CrivosTagStyle.BLUE_REV)
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Qual é o prazo constitucional para impetração de Mandado de Segurança?",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = TextPrimary,
-                    textAlign = TextAlign.Center
+                    text = currentCard.frente,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = c.inkPrimary,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 24.sp
                 )
 
                 if (isRevealed) {
-                    Divider(
-                        modifier = Modifier.padding(vertical = 20.dp),
-                        color = SurfaceBorder
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 18.dp),
+                        color = c.borderSubtle
                     )
+                    CrivosTag(text = "GABARITO / VERSO", style = CrivosTagStyle.GREEN_OK)
+                    Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        text = "120 dias, a contar da ciência formal do ato impugnado (Art. 23 da Lei nº 12.016/2009).",
-                        fontSize = 16.sp,
-                        color = GoldAccent,
+                        text = currentCard.verso,
+                        fontSize = 14.5.sp,
+                        color = c.inkPrimary,
                         textAlign = TextAlign.Center,
-                        fontWeight = FontWeight.SemiBold
+                        lineHeight = 21.sp
                     )
                 } else {
                     Spacer(modifier = Modifier.height(24.dp))
                     Text(
-                        text = "Toque para ver a resposta",
-                        fontSize = 13.sp,
-                        color = TextMuted
+                        text = "TOQUE PARA REVELAR O VERSO",
+                        fontSize = 10.5.sp,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        color = c.inkMuted,
+                        letterSpacing = 0.8.sp
                     )
                 }
             }
         }
 
-        // Ações de classificação SM-2
+        // Dock de Classificação SM-2 (.shell-dock)
         if (isRevealed) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = "Como foi a resposta?",
-                    fontSize = 13.sp,
-                    color = TextSecondary,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    RatingButton(
-                        modifier = Modifier.weight(1f),
-                        text = "Errei",
-                        color = CrimsonDanger,
-                        onClick = {
-                            val res = SM2Engine.nextSM2(cardState, 1)
-                            cardState = SM2State(ef = res.ef, n = res.n, iv = res.iv)
-                            isRevealed = false
-                            lastFeedback = "Card agendado para amanhã."
-                        }
-                    )
-                    RatingButton(
-                        modifier = Modifier.weight(1f),
-                        text = "Difícil",
-                        color = GoldAccent,
-                        onClick = {
-                            val res = SM2Engine.nextSM2(cardState, 3)
-                            cardState = SM2State(ef = res.ef, n = res.n, iv = res.iv)
-                            isRevealed = false
-                            lastFeedback = "Próxima revisão em ${res.iv} dias."
-                        }
-                    )
-                    RatingButton(
-                        modifier = Modifier.weight(1f),
-                        text = "Bom",
-                        color = EmeraldPrimary,
-                        onClick = {
-                            val res = SM2Engine.nextSM2(cardState, 4)
-                            cardState = SM2State(ef = res.ef, n = res.n, iv = res.iv)
-                            isRevealed = false
-                            lastFeedback = "Próxima revisão em ${res.iv} dias."
-                        }
-                    )
-                    RatingButton(
-                        modifier = Modifier.weight(1f),
-                        text = "Fácil",
-                        color = BlueInfo,
-                        onClick = {
-                            val res = SM2Engine.nextSM2(cardState, 5)
-                            cardState = SM2State(ef = res.ef, n = res.n, iv = res.iv)
-                            isRevealed = false
-                            lastFeedback = "Próxima revisão em ${res.iv} dias."
-                        }
-                    )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val gradeCard: (Int) -> Unit = { q ->
+                    val res = SM2Engine.nextSM2(currentState, q)
+                    cardStates = cardStates + (currentCard.id to SM2State(ef = res.ef, n = res.n, iv = res.iv))
+                    isRevealed = false
+                    currentIdx = (currentIdx + 1) % deck.size
                 }
+
+                SM2GradeButton(
+                    modifier = Modifier.weight(1f),
+                    label = "ERREI",
+                    sub = "1d",
+                    color = CrivosRed,
+                    onClick = { gradeCard(1) }
+                )
+                SM2GradeButton(
+                    modifier = Modifier.weight(1f),
+                    label = "DIFÍCIL",
+                    sub = "3d",
+                    color = c.yellow,
+                    onClick = { gradeCard(3) }
+                )
+                SM2GradeButton(
+                    modifier = Modifier.weight(1f),
+                    label = "BOM",
+                    sub = "6d",
+                    color = c.green,
+                    onClick = { gradeCard(4) }
+                )
+                SM2GradeButton(
+                    modifier = Modifier.weight(1f),
+                    label = "FÁCIL",
+                    sub = "15d",
+                    color = c.blue,
+                    onClick = { gradeCard(5) }
+                )
             }
         } else {
             Button(
                 onClick = { isRevealed = true },
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = EmeraldPrimary),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(46.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = CrivosRed,
+                    contentColor = Color.White
+                ),
                 shape = RoundedCornerShape(10.dp)
             ) {
-                Text(text = "Virar Card", color = AmoledBackground, fontWeight = FontWeight.Bold)
+                Text(
+                    text = "REVELAR RESPOSTA",
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 12.sp,
+                    letterSpacing = 0.6.sp
+                )
             }
         }
     }
 }
 
 @Composable
-private fun RatingButton(
+private fun SM2GradeButton(
     modifier: Modifier = Modifier,
-    text: String,
+    label: String,
+    sub: String,
     color: Color,
     onClick: () -> Unit
 ) {
-    OutlinedButton(
+    val c = LocalCrivosColors.current
+    Surface(
         onClick = onClick,
-        modifier = modifier.height(44.dp),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = color),
-        border = androidx.compose.foundation.BorderStroke(1.dp, color),
-        shape = RoundedCornerShape(8.dp),
-        contentPadding = PaddingValues(horizontal = 4.dp)
+        color = c.bgCard,
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, color),
+        modifier = modifier.height(48.dp)
     ) {
-        Text(text = text, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = label,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = color
+            )
+            Text(
+                text = sub,
+                fontSize = 9.5.sp,
+                fontFamily = FontFamily.Monospace,
+                color = c.inkMuted
+            )
+        }
     }
 }
