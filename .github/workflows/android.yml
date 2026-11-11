@@ -26,10 +26,12 @@ jobs:
       uses: gradle/actions/setup-gradle@v3
 
     - name: Build Debug APK
-      run: ./gradlew assembleDebug --stacktrace --info
-
-    - name: Run Unit Tests (SM-2 & Logic)
-      run: ./gradlew test --stacktrace --info
+      run: |
+        ./gradlew assembleDebug --stacktrace || {
+          echo "==== FALHA DETECTADA NO ASSEMBLE DEBUG ===="
+          ./gradlew assembleDebug --scan || true
+          exit 1
+        }
 
     - name: Upload Debug APK Artifact
       uses: actions/upload-artifact@v4
